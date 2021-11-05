@@ -177,7 +177,7 @@ export class ViewManager extends EventEmitter {
       // Also fixes switching tabs with Ctrl + Tab
       view.webContents.focus();
     } else {
-      this.window.webContents.focus();
+      this.window.mainView.webContents.focus();
     }
 
     this.window.updateTitle();
@@ -199,7 +199,7 @@ export class ViewManager extends EventEmitter {
 
     const { width, height } = this.window.win.getContentBounds();
 
-    const toolbarContentHeight = await this.window.win.webContents
+    const toolbarContentHeight = await this.window.mainView.webContents
       .executeJavaScript(`
       document.getElementById('app').offsetHeight
     `);

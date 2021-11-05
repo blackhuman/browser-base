@@ -1,4 +1,4 @@
-import { BrowserWindow, app, dialog } from 'electron';
+import { BrowserWindow, BrowserView, app, dialog } from 'electron';
 import { writeFileSync, promises } from 'fs';
 import { resolve, join } from 'path';
 
@@ -10,6 +10,8 @@ import { ViewManager } from '../view-manager';
 
 export class AppWindow {
   public win: BrowserWindow;
+
+  public mainView: BrowserView;
 
   public viewManager: ViewManager;
 
@@ -39,6 +41,28 @@ export class AppWindow {
         `static/${isNightly ? 'nightly-icons' : 'icons'}/icon.png`,
       ),
       show: false,
+    });
+
+    this.mainView = new BrowserView({
+      webPreferences: {
+        plugins: true,
+        nodeIntegration: true,
+        contextIsolation: false,
+        javascript: true,
+        enableRemoteModule: true,
+        worldSafeExecuteJavaScript: false,
+      },
+    });
+    this.win.addBrowserView(this.mainView);
+    this.mainView.setBounds({
+      x: 0,
+      y: 0,
+      width: this.win.getSize()[0],
+      height: this.win.getSize()[1] - 400,
+    });
+    this.mainView.setAutoResize({
+      width: true,
+      height: true,
     });
 
     this.incognito = incognito;
@@ -134,7 +158,7 @@ export class AppWindow {
       windowState.fullscreen = this.win.isFullScreen();
       writeFileSync(windowDataPath, JSON.stringify(windowState));
 
-      this.win.setBrowserView(null);
+      // this.win.setBrowserView(null);
 
       this.viewManager.clear();
 
@@ -151,16 +175,17 @@ export class AppWindow {
         Application.instance.sessions.unloadIncognitoExtensions();
       }
 
-      Application.instance.windows.list = Application.instance.windows.list.filter(
-        (x) => x.win.id !== this.win.id,
-      );
+      Application.instance.windows.list =
+        Application.instance.windows.list.filter(
+          (x) => x.win.id !== this.win.id,
+        );
     });
 
     // this.webContents.openDevTools({ mode: 'detach' });
 
     if (process.env.NODE_ENV === 'development') {
-      this.webContents.openDevTools({ mode: 'detach' });
-      this.win.loadURL('http://localhost:4444/app.html');
+      this.mainView.webContents.openDevTools({ mode: 'detach' });
+      this.mainView.webContents.loadURL('http://localhost:4444/app.html');
     } else {
       this.win.loadURL(join('file://', app.getAppPath(), 'build/app.html'));
     }
@@ -216,7 +241,7 @@ export class AppWindow {
   }
 
   public send(channel: string, ...args: any[]) {
-    this.webContents.send(channel, ...args);
+    this.mainView.webContents.send(channel, ...args);
   }
 
   public updateTitle() {

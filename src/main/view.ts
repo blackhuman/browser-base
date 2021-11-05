@@ -285,6 +285,8 @@ export class View {
       horizontal: false,
       vertical: false,
     });
+
+    this.browserView.setBounds({ x: 100, y: 78, width: 1000, height: 700 });
   }
 
   public get webContents() {
