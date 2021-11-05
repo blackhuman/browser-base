@@ -58,7 +58,7 @@ export class AppWindow {
       x: 0,
       y: 0,
       width: this.win.getSize()[0],
-      height: this.win.getSize()[1] - 400,
+      height: this.win.getSize()[1],
     });
     this.mainView.setAutoResize({
       width: true,
